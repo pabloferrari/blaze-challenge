@@ -15,7 +15,7 @@ PlayerService.insertPlayer = async (player_key, player_name, number, teamId, pla
 }
 
 PlayerService.getByTeam = async (teamId) => {
-    const matchResults = await db.connection().query(`SELECT * FROM matches WHERE team_id = $1;`, [teamId]);
+    const matchResults = await db.connection().query(`SELECT * FROM players WHERE team_id = $1;`, [teamId]);
     return matchResults.rows;
 }
 
