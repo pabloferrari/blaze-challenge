@@ -1,25 +1,48 @@
 const express = require('express');
-const { PORT } = require('./environments');
-const { checkIfTablesAreEmpty, lastMatches } = require('./utils/populateDatabase');
-
-// Connect to db
+const schedule = require('node-schedule');
+const { PORT } = require('./config/environments');
 const db = require('./config/database');
-db.connect();
+const { initializeRoutes } = require('./routes');
+const { checkIfTablesAreEmpty, getLastMatches } = require('./utils/populateDatabase');
 
-// Import routes
-const routes = require('./routes');
+async function startServer() {
 
-const app = express();
+    const app = express();
 
-app.use(routes);
+    // Connect to db
+    db.connect();
 
-
-
-// Execute the check
-checkIfTablesAreEmpty()
-.catch((error) => {
-    console.error('Error:', error);
-});
+    // Initialize routes
+    initializeRoutes(app);
 
 
-app.listen(PORT, () => { console.log(`App is runing in port ${PORT}!`); });
+    // Executes the check each time the server starts up
+    checkIfTablesAreEmpty()
+    .catch((error) => {
+        console.error('Error:', error);
+    });
+
+    schedule.scheduleJob('0 8 * * *', () => {
+        getLastMatches();
+    });
+
+    // Error-handling middleware
+    app.use((err, req, res, next) => {
+        if (err) {
+            // If the error is an object, send a JSON response
+            if (typeof err === 'object') {
+                console.log('ERROR', )
+                return res.status(err.status || 500).json({ error: err.message });
+            }
+            // If not, send a plain text response
+            return res.status(500).send(err.toString());
+        }
+        // If there's no error, move to the next middleware
+        next();
+    });
+
+    app.listen(PORT, () => { console.log(`App is runing in port ${PORT}!`); });
+
+}
+
+startServer();

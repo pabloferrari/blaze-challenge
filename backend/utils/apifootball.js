@@ -1,5 +1,5 @@
 const axios = require('axios');
-const { API_KEY } = require('../environments');
+const { API_KEY } = require('../config/environments');
 const { getDateMinusDays, getFormattedDate } = require('./dateHelper');
 
 const apiUrl = 'https://apiv3.apifootball.com/';

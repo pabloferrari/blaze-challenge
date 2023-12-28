@@ -1,5 +1,5 @@
 const { Client } = require('pg');
-const { DB_USERNAME,DB_PASSWORD,DB_NAME,DB_PORT,DB_HOST } = require('../environments');
+const { DB_USERNAME,DB_PASSWORD,DB_NAME,DB_PORT,DB_HOST } = require('./environments');
 
 const dbConfig = {
     user: DB_USERNAME,
