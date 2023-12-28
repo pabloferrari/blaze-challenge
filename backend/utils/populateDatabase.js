@@ -11,7 +11,7 @@ const checkIfTablesAreEmpty = async () => {
         try {
             const rowCount = await getRowCount(tableName);
 
-            if (rowCount === 0) {
+            if (rowCount == 0) {
                 console.log(`Table ${tableName} is empty. Populating it...`);
                 await fillTable(tableName);
             } else {
@@ -52,7 +52,7 @@ const fillTeamsTable = async () => {
 
     for (const team of teams) {
         try {
-            const teamId = await TeamService.insertTeam(team);
+            const teamId = await TeamService.insertTeam(team.team_key, team.team_name, team.venue.venue_name);
             await insertPlayers(teamId, team.players);
             console.log(`Team inserted with ID ${teamId}`);
         } catch (error) {
@@ -65,7 +65,7 @@ const insertPlayers = async (teamId, players) => {
     for (const player of players) {
         try {
             const number = player.player_number || null;
-            await PlayerService.insertPlayer(player, teamId, number);
+            await PlayerService.insertPlayer(player.player_key, player.player_name, number, teamId, player.player_type);
         } catch (error) {
             throw error;
         }

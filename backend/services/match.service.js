@@ -11,29 +11,16 @@ MatchService.getRowsFromMatches = async () => {
 MatchService.insertMatches = async (matches) => {
     const teamIdMap = await TeamService.getTeamIdMap();
 
-    const client = db.connection();
-
-    try {
-        await client.query('BEGIN');
-
-        for (const match of matches) {
-            if (match.match_status === 'Finished') {
-                await insertSingleMatch(client, match, teamIdMap);
-            }
+    for (const match of matches) {
+        if (match.match_status === 'Finished') {
+            await insertSingleMatch(match, teamIdMap);
         }
-
-        await client.query('COMMIT');
-    } catch (err) {
-        await client.query('ROLLBACK');
-        throw err;
-    } finally {
-        client.release();
     }
 };
 
-async function insertSingleMatch(client, match, teamIdMap) {
+async function insertSingleMatch(match, teamIdMap) {
     try {
-        await client.query(
+        await db.connection().query(
             'INSERT INTO matches (match_id, team_home_id, team_away_id, league_name, match_date, match_hometeam_score, match_awayteam_score) VALUES ($1, $2, $3, $4, $5, $6, $7)',
             [
                 match.match_id,

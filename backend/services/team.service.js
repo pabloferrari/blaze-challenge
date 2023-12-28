@@ -32,4 +32,14 @@ TeamService.insertTeam = async (team_key, team_name, venue) => {
     }
 }
 
+TeamService.getTeamIdMap = async () => {
+    const teamResults = await TeamService.getTeams();
+    const teamIdMap = {};
+    teamResults.forEach(team => {
+        teamIdMap[team.team_key] = team.id;
+    });
+
+    return teamIdMap;
+}
+
 module.exports = TeamService;
