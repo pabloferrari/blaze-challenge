@@ -13,13 +13,19 @@ TeamService.getTeams = async () => {
 }
 
 
-TeamService.getPlayersByTeam = async (teamId) => {
-
+TeamService.getTeamById = async (teamId) => {
+    try {
+        const teamResult = await db.connection().query(`SELECT * FROM teams WHERE id = $1;`, [teamId]);
+        if (teamResult.rowCount !== 1) return;
+        return teamResult.rows[0];
+    } catch (error) {
+        throw error
+    }
 }
 
 TeamService.insertTeam = async (team_key, team_name, venue) => {
     try {
-        const teamResult = await db.connection().query(`INSERT INTO ${tableName} (team_key, team_name, venue) VALUES ($1, $2, $3) RETURNING id`, [team_key, team_name, venue]);
+        const teamResult = await db.connection().query(`INSERT INTO teams (team_key, team_name, venue) VALUES ($1, $2, $3) RETURNING id`, [team_key, team_name, venue]);
         return teamResult.rows[0].id;
     } catch (error) {
         throw error
