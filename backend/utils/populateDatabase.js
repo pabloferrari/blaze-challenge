@@ -4,64 +4,89 @@ const MatchService = require('../services/match.service');
 const PlayerService = require('../services/player.service');
 const { getDateMinusDays } = require('./dateHelper');
 
-// Function to check if tables are empty
+const TABLES = ['teams', 'matches'];
+
 const checkIfTablesAreEmpty = async () => {
-    const tablesToCheck = ['teams', 'matches'];
+    for (const tableName of TABLES) {
+        try {
+            const rowCount = await getRowCount(tableName);
 
-    for (const tableName of tablesToCheck) {
-        let rowCount = 0;
-        if (tableName === 'teams') {
-            rowCount = await TeamService.getRowsFromTeams();
-        } else if (tableName === 'matches') {
-            rowCount = await MatchService.getRowsFromMatches();
-        }
-
-        if (rowCount === '0') {
-            console.log(`Table ${tableName} is empty. Populating it...`);
-            await fillTable(tableName);
-        } else {
-            console.log(`Table ${tableName} is not empty (${rowCount}). No need to fill it.`);
-        }
-    }
-}
-
-// Function to fill tables
-const fillTable = async () => {
-    if (tableName === 'teams') {
-        const teams = await getApiFootballTeams();
-
-        teams.forEach(async team => {
-            const { team_key, team_name, venue, players } = team;
-            try {
-                const teamId = await TeamService.insertTeam(team_key, team_name, venue.venue_name);
-                for (const player of players) {
-                    try {
-                        const number = player.player_number || null;
-                        await PlayerService.insertPlayer(player.player_key, player.player_name, number, teamId, player.player_type);
-                    } catch (err) {
-                        throw err;
-                    }
-                }
-
-                console.log(`Team inserted with ID ${teamId}`);
-            } catch (error) {
-                throw error;
+            if (rowCount === 0) {
+                console.log(`Table ${tableName} is empty. Populating it...`);
+                await fillTable(tableName);
+            } else {
+                console.log(`Table ${tableName} is not empty (${rowCount}). No need to fill it.`);
             }
-
-        });
-    } else if (tableName === 'matches') {
-        const matches = await getApiFootballMatches(getDateMinusDays(30));
-        await MatchService.insertMatches(matches);
+        } catch (error) {
+            console.error(`Error checking table ${tableName}:`, error.message);
+        }
     }
+};
 
-}
+const getRowCount = async (tableName) => {
+    try {
+        if (tableName === 'teams') {
+            return await TeamService.getRowsFromTeams();
+        } else if (tableName === 'matches') {
+            return await MatchService.getRowsFromMatches();
+        }
+    } catch (error) {
+        throw error;
+    }
+};
 
-const lastMatches = async () => {
-    const matches = await getApiFootballMatches(getDateMinusDays(1));
+const fillTable = async (tableName) => {
+    try {
+        if (tableName === 'teams') {
+            await fillTeamsTable();
+        } else if (tableName === 'matches') {
+            await fillMatchesTable();
+        }
+    } catch (error) {
+        console.error(`Error filling table ${tableName}:`, error.message);
+    }
+};
+
+const fillTeamsTable = async () => {
+    const teams = await getApiFootballTeams();
+
+    for (const team of teams) {
+        try {
+            const teamId = await TeamService.insertTeam(team);
+            await insertPlayers(teamId, team.players);
+            console.log(`Team inserted with ID ${teamId}`);
+        } catch (error) {
+            throw error;
+        }
+    }
+};
+
+const insertPlayers = async (teamId, players) => {
+    for (const player of players) {
+        try {
+            const number = player.player_number || null;
+            await PlayerService.insertPlayer(player, teamId, number);
+        } catch (error) {
+            throw error;
+        }
+    }
+};
+
+const fillMatchesTable = async () => {
+    const matches = await getApiFootballMatches(getDateMinusDays(30));
     await MatchService.insertMatches(matches);
-}
+};
+
+const getLastMatches = async () => {
+    try {
+        const matches = await getApiFootballMatches(getDateMinusDays(1));
+        await MatchService.insertMatches(matches);
+    } catch (error) {
+        console.error('Error getting and inserting last matches:', error.message);
+    }
+};
 
 module.exports = {
     checkIfTablesAreEmpty,
-    lastMatches
-}
+    getLastMatches
+};
