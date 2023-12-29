@@ -10,12 +10,23 @@ MatchService.getRowsFromMatches = async () => {
 
 MatchService.insertMatches = async (matches) => {
     const teamIdMap = await TeamService.getTeamIdMap();
+    const matchIds = matches.map(match => match.match_id);
+    const existingMatches = await MatchService.getMatchesByMatchIds(matchIds);
+    const existingMatchesMap = new Map(existingMatches.map(match => [`${match.match_id}`, match.id]));
 
     for (const match of matches) {
         if (match.match_status === 'Finished') {
-            await insertSingleMatch(match, teamIdMap);
+            const existingMatch = existingMatchesMap.get(match.match_id);
+            if (!existingMatch) {
+                await insertSingleMatch(match, teamIdMap);
+            }
         }
     }
+};
+
+MatchService.getMatchesByMatchIds = async (matchIds) => {
+    const result = await db.connection().query('SELECT id,match_id FROM matches WHERE match_id = ANY($1)', [matchIds]);
+    return result.rows;
 };
 
 async function insertSingleMatch(match, teamIdMap) {
