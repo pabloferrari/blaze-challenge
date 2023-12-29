@@ -8,17 +8,13 @@ const TABLES = ['teams', 'matches'];
 
 const checkIfTablesAreEmpty = async () => {
     for (const tableName of TABLES) {
-        try {
-            const rowCount = await getRowCount(tableName);
+        const rowCount = await getRowCount(tableName);
 
-            if (rowCount == 0) {
-                console.log(`Table ${tableName} is empty. Populating it...`);
-                await fillTable(tableName);
-            } else {
-                console.log(`Table ${tableName} is not empty (${rowCount}). No need to fill it.`);
-            }
-        } catch (error) {
-            console.error(`Error checking table ${tableName}:`, error.message);
+        if (rowCount == 0) {
+            console.log(`Table ${tableName} is empty. Populating it...`);
+            await fillTable(tableName);
+        } else {
+            console.log(`Table ${tableName} is not empty (${rowCount}). No need to fill it.`);
         }
     }
 };
@@ -54,7 +50,6 @@ const fillTeamsTable = async () => {
         try {
             const teamId = await TeamService.insertTeam(team.team_key, team.team_name, team.venue.venue_name);
             await insertPlayers(teamId, team.players);
-            console.log(`Team inserted with ID ${teamId}`);
         } catch (error) {
             throw error;
         }

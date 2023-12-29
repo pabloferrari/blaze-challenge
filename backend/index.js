@@ -9,10 +9,10 @@ async function connectWithRetry() {
     while (true) {
         try {
             await checkIfTablesAreEmpty();
-            console.log('Successfully connected to the tables.');
+            console.log('Successfully executed checkIfTablesAreEmpty()');
             break;
         } catch (error) {
-            console.error('Error:', error);
+            console.log('Error connectWithRetry():', error);
             console.log('Try again in 10 seconds...');
             await new Promise(resolve => setTimeout(resolve, 10000));
         }
@@ -42,7 +42,7 @@ async function startServer() {
         if (err) {
             // If the error is an object, send a JSON response
             if (typeof err === 'object') {
-                console.log('ERROR', )
+                console.log('ERROR', err)
                 return res.status(err.status || 500).json({ error: err.message });
             }
             // If not, send a plain text response
