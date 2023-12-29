@@ -13,18 +13,18 @@ const client = new Client(dbConfig);
 
 module.exports = {
     connect: async () => {
-      try {
-        await client.connect();
-        console.log('Successful connection to PostgreSQL');
-      } catch (error) {
-        console.error('Error connecting to PostgreSQL:', error.message);
-      }
+        try {
+            await client.connect();
+            console.log('Successful connection to PostgreSQL');
+        } catch (error) {
+            console.error('Error connecting to PostgreSQL:', error.message);
+        }
     },
     connection: () => {
-      if (client && client.query) {
-        return client;
-      }
-      console.error('Error. Please, call to connect()');
-      return null;
+        if (client && client.query) {
+            return client;
+        }
+        console.error('Error. Please, call to connect()');
+        return null;
     },
 };
