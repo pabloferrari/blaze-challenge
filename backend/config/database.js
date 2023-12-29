@@ -9,17 +9,24 @@ const dbConfig = {
     port: DB_PORT
 };
 
-const client = new Client(dbConfig);
+let client;
 
-module.exports = {
-    connect: async () => {
+const connectWithRetry = async () => {
+    while (true) {
         try {
+            client = new Client(dbConfig);
             await client.connect();
             console.log('Successful connection to PostgreSQL');
+            break;
         } catch (error) {
             console.error('Error connecting to PostgreSQL:', error.message);
+            await new Promise(resolve => setTimeout(resolve, 5000));
         }
-    },
+    }
+};
+
+module.exports = {
+    connect: connectWithRetry,
     connection: () => {
         if (client && client.query) {
             return client;

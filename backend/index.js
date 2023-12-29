@@ -5,6 +5,20 @@ const db = require('./config/database');
 const { initializeRoutes } = require('./routes');
 const { checkIfTablesAreEmpty, getLastMatches } = require('./utils/populateDatabase');
 
+async function connectWithRetry() {
+    while (true) {
+        try {
+            await checkIfTablesAreEmpty();
+            console.log('Successfully connected to the tables.');
+            break;
+        } catch (error) {
+            console.error('Error:', error);
+            console.log('Try again in 10 seconds...');
+            await new Promise(resolve => setTimeout(resolve, 10000));
+        }
+    }
+}
+
 async function startServer() {
 
     const app = express();
@@ -17,10 +31,7 @@ async function startServer() {
 
 
     // Executes the check each time the server starts up
-    checkIfTablesAreEmpty()
-    .catch((error) => {
-        console.error('Error:', error);
-    });
+    connectWithRetry();
 
     schedule.scheduleJob('0 8 * * *', () => {
         getLastMatches();
